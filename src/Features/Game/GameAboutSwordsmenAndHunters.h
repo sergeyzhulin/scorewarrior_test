@@ -23,8 +23,6 @@
 #include <Features/SimpleComponents.h>
 #include <Features/Game/Actions.h>
 
-using namespace sw;
-
 namespace features {
 
 	class GameAboutSwordsmenAndHunters final : public core::ILog
@@ -72,15 +70,15 @@ namespace features {
 
 			std::unordered_map<uint32_t, core::EntityId> uints_map;
 			std::cout << "Commands:\n";
-			io::CommandParser parser;
+			sw::io::CommandParser parser;
 			parser
-				.add<io::CreateMap>(
+				.add<sw::io::CreateMap>(
 					[this](auto command)
 					{
 						_world.map().create(command.width, command.height);
-						eventLog.log(_world.worldStep(), io::MapCreated{command.width, command.height});
+						eventLog.log(_world.worldStep(), sw::io::MapCreated{command.width, command.height});
 					})
-				.add<io::SpawnSwordsman>(
+				.add<sw::io::SpawnSwordsman>(
 					[this, &uints_map, noHPDeathConditionId, behSwordsmanId](auto command)
 					{ 
 						auto actorId = _world.spawnGameObject(noHPDeathConditionId, behSwordsmanId);
@@ -105,9 +103,9 @@ namespace features {
 
 						uints_map.emplace(command.unitId, actorId);
 						eventLog.log( _world.worldStep(),
-							io::UnitSpawned{command.unitId, "Swordsman", uint32_t(coords.x), uint32_t(coords.y)});
+							sw::io::UnitSpawned{command.unitId, "Swordsman", uint32_t(coords.x), uint32_t(coords.y)});
 					})
-				.add<io::SpawnHunter>(
+				.add<sw::io::SpawnHunter>(
 					[this, &uints_map, noHPDeathConditionId, behHunterId](auto command)
 					{ 
 						auto actorId = _world.spawnGameObject(noHPDeathConditionId, behHunterId);
@@ -140,9 +138,9 @@ namespace features {
 						uints_map.emplace(command.unitId, actorId);
 						eventLog.log(
 							_world.worldStep(),
-							io::UnitSpawned{command.unitId, "Hunter", uint32_t(coords.x), uint32_t(coords.y)});
+							sw::io::UnitSpawned{command.unitId, "Hunter", uint32_t(coords.x), uint32_t(coords.y)});
 				})
-				.add<io::March>(
+				.add<sw::io::March>(
 					[&uints_map, this](auto command)
 					{ 
 						auto it = uints_map.find(command.unitId);
@@ -164,7 +162,12 @@ namespace features {
 							}
 							eventLog.log(
 								_world.worldStep(),
-								io::MarchStarted{command.unitId, uint32_t(coords.x), uint32_t(coords.y), command.targetX, command.targetY});
+								sw::io::MarchStarted{
+									command.unitId,
+									uint32_t(coords.x),
+									uint32_t(coords.y),
+									command.targetX,
+									command.targetY});
 						}
 					});
 
@@ -179,7 +182,7 @@ namespace features {
 		{
 			UnitId* unitId = world.entityManager().getComponentPtr<UnitId>(actor);
 			if (unitId) {
-				eventLog.log(_world.worldStep(), io::UnitDied{unitId->value});
+				eventLog.log(_world.worldStep(), sw::io::UnitDied{unitId->value});
 			}
 		}
 
@@ -188,7 +191,9 @@ namespace features {
 			UnitId* unitIdActor = world.entityManager().getComponentPtr<UnitId>(actor);
 			UnitId* unitIdTarget = world.entityManager().getComponentPtr<UnitId>(target);
 			if (unitIdActor && unitIdTarget) {
-				eventLog.log( _world.worldStep(), io::UnitAttacked{unitIdActor->value, unitIdTarget->value, damage, targetHP});
+				eventLog.log(
+					_world.worldStep(),
+					sw::io::UnitAttacked{unitIdActor->value, unitIdTarget->value, damage, targetHP});
 			}
 
 		}
@@ -198,7 +203,7 @@ namespace features {
 			UnitId* unitId = world.entityManager().getComponentPtr<UnitId>(actor);
 			core::Coords* coords = world.entityManager().getComponentPtr<core::Coords>(actor);
 			if (unitId && coords) {
-				eventLog.log(_world.worldStep(), io::UnitMoved{unitId->value, coords->x, coords->y});
+				eventLog.log(_world.worldStep(), sw::io::UnitMoved{unitId->value, coords->x, coords->y});
 			}
 
 		}
@@ -208,7 +213,7 @@ namespace features {
 			UnitId* unitId = world.entityManager().getComponentPtr<UnitId>(actor);
 			core::Coords* coords = world.entityManager().getComponentPtr<core::Coords>(actor);
 			if (unitId && coords) {
-				eventLog.log(_world.worldStep(), io::MarchEnded{unitId->value, coords->x, coords->y});
+				eventLog.log(_world.worldStep(), sw::io::MarchEnded{unitId->value, coords->x, coords->y});
 			}
 
 		}
